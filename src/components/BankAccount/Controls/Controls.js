@@ -12,21 +12,27 @@ class Controls extends Component {
   };
 
   state = {
-    moneyAmount: '',
+    moneyAmount: 0,
+  };
+
+  handleDeposit = () => {
+    this.props.onDeposit(this.state.moneyAmount);
+    this.setState({ moneyAmount: 0 });
+  };
+
+  handleWithdraw = () => {
+    this.props.onWithdraw(this.state.moneyAmount);
+    this.setState({ moneyAmount: 0 });
   };
 
   handleChange = e => {
     this.setState({
       moneyAmount: e.currentTarget.value,
     });
-    setTimeout(() => {
-      this.setState({ moneyAmount: '' });
-    }, 4000);
   };
 
   render() {
     const { moneyAmount } = this.state;
-    const { onDeposit, onWithdraw } = this.props;
     return (
       <section className={styles.controls}>
         <input
@@ -35,10 +41,10 @@ class Controls extends Component {
           value={moneyAmount}
           onChange={this.handleChange}
         />
-        <button type="button" onClick={() => onDeposit(moneyAmount)}>
+        <button type="button" onClick={this.handleDeposit}>
           Deposit
         </button>
-        <button type="button" onClick={() => onWithdraw(moneyAmount)}>
+        <button type="button" onClick={this.handleWithdraw}>
           Withdraw
         </button>
       </section>

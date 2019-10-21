@@ -6,16 +6,17 @@ import Controls from '../Controls';
 import Balance from '../Balance';
 import Transactions from '../TransactionHistory';
 import { toast } from 'react-toastify';
-import storage from '../../services/localStorage';
+import storage from '../../../services/localStorage';
 import 'react-toastify/dist/ReactToastify.css';
 
 toast.configure();
-const TRANSACTIONS = {
+
+const Transaction = {
   DEPOSIT: 'Deposit',
   WITHDRAW: 'Withdraw',
 };
 
-const MESSAGES = {
+const Message = {
   NOT_ENOUGH_MONEY: 'На счету недостаточно средств для проведения операции!',
   ENTER_THE_AMOUNT: 'Введите сумму для проведения операции!',
   SUCCESSFULL: 'Транзакция прошла успешно!',
@@ -58,11 +59,7 @@ class Dashboard extends Component {
     }
   }
 
-  onTransaction = (amount, transactionType) => {
-    if (amount === '' || amount <= 0) {
-      toast(MESSAGES.ENTER_THE_AMOUNT);
-      return;
-    }
+  createTransaction = (amount, transactionType) => {
     const date = new Date();
     const amountConvertToFloat = parseFloat(amount);
     const transaction = {
@@ -72,59 +69,63 @@ class Dashboard extends Component {
       date: date.toLocaleString(),
     };
 
-    transactionType === TRANSACTIONS.DEPOSIT
-      ? this.setState(state => ({
-          transactions: [...state.transactions, transaction],
-          balance: state.balance + transaction.amount,
-        }))
-      : this.setState(state => ({
-          transactions: [...state.transactions, transaction],
-          balance: state.balance - transaction.amount,
-        }));
-
-    toast.success(MESSAGES.SUCCESSFULL);
     return transaction;
   };
 
   onDeposit = amount => {
-    this.onTransaction(amount, TRANSACTIONS.DEPOSIT);
+    if (amount === '' || amount <= 0) {
+      toast(Message.ENTER_THE_AMOUNT);
+      return;
+    }
+    const transaction = this.createTransaction(amount, Transaction.DEPOSIT);
+    this.setState(state => ({
+      transactions: [...state.transactions, transaction],
+      balance: state.balance + transaction.amount,
+    }));
+    toast.success(Message.SUCCESSFULL);
   };
 
   onWithdraw = amount => {
-    if (amount > this.state.balance) {
-      toast.error(MESSAGES.NOT_ENOUGH_MONEY);
+    if (amount === '' || amount <= 0) {
+      toast(Message.ENTER_THE_AMOUNT);
       return;
     }
-    this.onTransaction(amount, TRANSACTIONS.WITHDRAW);
+    if (amount > this.state.balance) {
+      toast.error(Message.NOT_ENOUGH_MONEY);
+      return;
+    }
+    const transaction = this.createTransaction(amount, Transaction.WITHDRAW);
+
+    this.setState(state => ({
+      transactions: [...state.transactions, transaction],
+      balance: state.balance - transaction.amount,
+    }));
+    toast.success(Message.SUCCESSFULL);
   };
 
-  count = criterion => {
+  countMoneyFlow = () => {
     const { transactions } = this.state;
-    const filteredItems = transactions.filter(
-      transaction => transaction.type === criterion,
+
+    return transactions.reduce(
+      (acc, transaction) => {
+        acc[transaction.type] += transaction.amount;
+        return acc;
+      },
+      {
+        Deposit: 0,
+        Withdraw: 0,
+      },
     );
-
-    return filteredItems.reduce((acc, item) => acc + item.amount, 0);
-  };
-
-  countTotalIncome = () => {
-    return this.count(TRANSACTIONS.DEPOSIT);
-  };
-
-  countTotalExpences = () => {
-    return this.count(TRANSACTIONS.WITHDRAW);
   };
 
   render() {
     const { balance, transactions } = this.state;
+    const income = this.countMoneyFlow().Deposit;
+    const expenses = this.countMoneyFlow().Withdraw;
     return (
       <div className="dashboard">
         <Controls onDeposit={this.onDeposit} onWithdraw={this.onWithdraw} />
-        <Balance
-          balance={balance}
-          income={this.countTotalIncome}
-          expenses={this.countTotalExpences}
-        />
+        <Balance balance={balance} income={income} expenses={expenses} />
         <Transactions items={transactions} />
       </div>
     );
