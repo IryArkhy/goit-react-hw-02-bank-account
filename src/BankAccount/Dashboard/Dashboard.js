@@ -5,7 +5,8 @@ import shortid from 'shortid';
 import Controls from '../Controls';
 import Balance from '../Balance';
 import Transactions from '../TransactionHistory';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
+import storage from '../../services/localStorage';
 import 'react-toastify/dist/ReactToastify.css';
 
 toast.configure();
@@ -42,6 +43,17 @@ class Dashboard extends Component {
     transactions: [],
     balance: 0,
   };
+
+  componentDidMount() {
+    const transactions = storage.get('transactions');
+    if (transactions) {
+      this.setState({ transactions });
+    }
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.transactions !== this.state.transactions)
+      storage.save('transactions', this.state.transactions);
+  }
 
   onTransaction = (amount, transactionType) => {
     if (amount === '' || amount === 0) {
