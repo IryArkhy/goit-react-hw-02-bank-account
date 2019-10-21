@@ -46,13 +46,16 @@ class Dashboard extends Component {
 
   componentDidMount() {
     const transactions = storage.get('transactions');
-    if (transactions) {
-      this.setState({ transactions });
+    const balance = storage.get('balance');
+    if (transactions && balance) {
+      this.setState({ transactions, balance });
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.transactions !== this.state.transactions)
+    if (prevState.transactions !== this.state.transactions) {
       storage.save('transactions', this.state.transactions);
+      storage.save('balance', this.state.balance);
+    }
   }
 
   onTransaction = (amount, transactionType) => {
