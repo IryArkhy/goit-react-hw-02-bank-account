@@ -59,7 +59,7 @@ class Dashboard extends Component {
   }
 
   onTransaction = (amount, transactionType) => {
-    if (amount === '' || amount === 0) {
+    if (amount === '' || amount <= 0) {
       toast(MESSAGES.ENTER_THE_AMOUNT);
       return;
     }
